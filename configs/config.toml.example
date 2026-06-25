@@ -1,0 +1,49 @@
+# promptTranslate — Örnek Yapılandırma
+# Kopyala: ~/.config/prompttranslate/config.toml
+
+[general]
+# log_level: debug | info | warn | error
+log_level = "info"
+# log_file: boş bırakılırsa stderr'e yazar
+log_file  = ""
+
+[hotkeys]
+# Yazma modu: rofi aç, TR yaz → EN enjekte et
+write_mode = "alt+space"
+# Okuma modu: panodaki EN metni → TR bildirim
+read_mode  = "alt+shift+space"
+# Config yeniden yükle (daemon'ı yeniden başlatır)
+reload     = "alt+shift+c"
+
+[display]
+# launcher: rofi | wofi (rofi yoksa wofi'ye otomatik düşer)
+launcher = "rofi"
+# theme: "prompttranslate" (dahili karanlık tema) veya boş
+theme    = "prompttranslate"
+
+[translator]
+# provider: groq | deepl
+provider    = "groq"
+# cache_size: son N çevirinin LRU önbelleği (0 = devre dışı)
+cache_size  = 50
+timeout_sec = 10
+max_retries = 3
+
+[groq]
+# api_key: https://console.groq.com/keys adresinden alın
+# Alternatif: GROQ_API_KEY ortam değişkeni
+api_key  = ""
+model    = "llama-3.1-8b-instant"
+base_url = "https://api.groq.com/openai/v1"
+
+[deepl]
+# api_key: https://www.deepl.com/pro-api adresinden alın
+# Alternatif: DEEPL_API_KEY ortam değişkeni
+api_key = ""
+# pro: true → ücretli API (api.deepl.com), false → ücretsiz (api-free.deepl.com)
+pro     = false
+
+[injection]
+# Her tuş vuruşu arasındaki bekleme süresi (ms)
+# Çok hızlı terminallerde 5, yavaş olanlar için 20 deneyin
+keystroke_delay_ms = 12

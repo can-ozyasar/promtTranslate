@@ -1,0 +1,36 @@
+# ─── Binary çıktı ───────────────────────────────────────────────────────────
+prompttranslate
+prompttranslate.exe
+
+# ─── Go ─────────────────────────────────────────────────────────────────────
+*.test
+*.out
+vendor/
+
+# ─── Geçici dosyalar ────────────────────────────────────────────────────────
+/tmp/
+*.tmp
+*.log
+
+# ─── IDE / Editör ────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*.swn
+.DS_Store
+
+# ─── GÜVENLİK — Bu dosyalar ASLA commit edilmez ──────────────────────────────
+# Gerçek config (API anahtarı içerebilir!)
+# .example uzantılı dosyalar GÜVENLİ ve commit edilmeli
+~/.config/prompttranslate/config.toml
+config.toml
+.env
+.env.*
+*.key
+*.pem
+secrets.*
+
+# ─── Go workspace (Go 1.18+) ─────────────────────────────────────────────────
+go.work
+go.work.sum

@@ -1,0 +1,30 @@
+[Unit]
+Description=promptTranslate — global hotkey translation daemon
+Documentation=https://github.com/canoz/promttranslate
+# Start after the graphical session is available
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/prompttranslate
+Restart=on-failure
+RestartSec=3
+
+# Environment — edit these or use ~/.config/prompttranslate/config.toml
+# Environment=GROQ_API_KEY=gsk_YOUR_KEY_HERE
+# Environment=DEEPL_API_KEY=YOUR_DEEPL_KEY
+
+# Pass the user's display environment into the service
+# (needed so rofi / notify-send know which display to use)
+PassEnvironment=DISPLAY WAYLAND_DISPLAY XDG_SESSION_TYPE DBUS_SESSION_BUS_ADDRESS XDG_RUNTIME_DIR XDG_CONFIG_HOME
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+ReadWritePaths=%h/.config/prompttranslate
+
+[Install]
+WantedBy=graphical-session.target
