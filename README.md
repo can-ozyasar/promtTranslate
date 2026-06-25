@@ -113,8 +113,22 @@ notify-send bildirimi + panoya kopyalanır
 |-------|-------|-------|
 | **Hotkey Listener** | `internal/hotkey` | `/dev/input/event*` aygıtlarını doğrudan okur (evdev). Root gerektirmez — `input` grubu yeterli. |
 | **Input Manager** | `internal/input` | rofi/wofi dmenu subprocess'i yönetir; panodan/primary selection'dan metin çeker. |
-| **Translator Engine** | `internal/translator` | `Translator` interface + thread-safe LRU cache. Groq ve DeepL backend'leri takılabilir. |
-| **Injector** | `internal/injector` | X11'de `xdotool`, Wayland'da `ydotool` ile tuş enjeksiyonu. Modifier temizleme ve gecikme yönetimi dahil. |
+### 🖥️ Arayüz & Tepsi Simgesi (Tray Icon)
+Arka plan servisi çalıştığında, GNOME veya diğer masaüstü ortamlarının üst panelinde bir **Tepsi Simgesi (Sözlük İkonu)** belirir:
+- **🟢/🔴 Durum Göstergesi:** Servisin anlık olarak çalışıp çalışmadığını gösterir.
+- **▶ Başlat / ⏹ Durdur:** Servisi tek tıkla açıp kapatabilirsiniz.
+- Bilgisayar her açıldığında tepsi simgesi otomatik olarak başlatılır (`~/.config/autostart/prompttranslate-tray.desktop`).
+
+### 🛠️ Nasıl Çalışır?
+
+#### 1. X11 Ortamı
+X11 üzerinde `xdotool` kullanılarak çevrilen metin *anında* aktif terminale veya dökümana klavye simülasyonu ile enjekte edilir. Pürüzsüz ve gerçek zamanlıdır.
+
+#### 2. Wayland Ortamı (GNOME)
+Wayland'ın (özellikle GNOME) katı güvenlik modeli nedeniyle klavye simülasyonu (`ydotool`) stabil çalışmamaktadır. Bu yüzden Wayland tespit edildiğinde sistem otomatik olarak **Pano (Clipboard) Moduna** geçer:
+1. Çevrilen metin anında panoya (`wl-copy`) kopyalanır.
+2. Sağ üstte "Çeviri Hazır! 📋" şeklinde bir bildirim (`notify-send`) çıkar.
+3. Siz sadece `Ctrl+V` yaparak metni istediğiniz yere yapıştırırsınız. Hata payı %0'dır.iyonu. Modifier temizleme ve gecikme yönetimi dahil. |
 | **Notify** | `internal/notify` | `notify-send` sarmalayıcı; aciliyet, süre ve ikon desteği. |
 | **Config** | `internal/config` | TOML + XDG_CONFIG_HOME + env var override. Sıfır bağımlılık, varsayılanlarla çalışır. |
 | **Env Detect** | `internal/env` | `$WAYLAND_DISPLAY` / `$DISPLAY` ile ortam tespiti; araç bağımlılık kontrolü. |
@@ -135,9 +149,14 @@ source ~/.bashrc
 go version  # go version go1.22.4 linux/amd64
 ```
 
-**Sistem araçları (Wayland için):**
-```bash
-sudo apt install rofi wl-clipboard ydotool libnotify-bin
+**Sistem araçl```bash
+# Ubuntu/Debian için eksik bağımlılıkları yükleyin
+sudo apt install -y rofi wl-clipboard xclip ydotool
+
+# Wayland ve GNOME için üst menü (Tepsi Simgesi / Tray Icon) bağımlılıkları:
+sudo apt install -y python3-gi gir1.2-ayatanaappindicator3-0.1 gir1.2-appindicator3-0.1
+
+# 2. Kurulum betiğini çalıştırın
 ```
 
 **Sistem araçları (X11 için):**

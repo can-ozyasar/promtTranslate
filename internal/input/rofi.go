@@ -3,7 +3,9 @@ package input
 import (
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -44,8 +46,12 @@ func (r *RofiLauncher) Prompt(ctx context.Context, placeholder string) (string, 
 			"--dmenu",
 			"--prompt", placeholder,
 			"--lines", "1",
-			"--hide-scroll",
-			"--no-actions",
+			"--width", "600",
+			"--height", "50",
+			"--normal-window", // Enables window dragging
+			"--style", wofiCSS(),
+			"--allow-markup=false",
+			"--insensitive",
 		)
 	default: // rofi
 		args := []string{
@@ -102,4 +108,28 @@ entry {
     text-color: #e0e0ff;
 }
 `
+}
+
+// wofiCSS returns a file path containing the CSS string for wofi.
+// Wofi accepts CSS styling. We'll use a basic dark theme.
+func wofiCSS() string {
+	css := `
+window {
+    background-color: #1a1b26;
+    color: #c0caf5;
+    border: 2px solid #7aa2f7;
+    border-radius: 8px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13px;
+}
+input {
+    background-color: #1a1b26;
+    color: #e0e0ff;
+    border: none;
+    padding: 8px;
+}
+`
+	tmpFile := filepath.Join(os.TempDir(), "prompttranslate-wofi.css")
+	_ = os.WriteFile(tmpFile, []byte(css), 0644)
+	return tmpFile
 }

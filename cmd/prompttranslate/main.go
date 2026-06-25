@@ -91,13 +91,19 @@ func main() {
 	}
 
 	// ── Build sub-systems ─────────────────────────────────────────────────────
-	launcher := input.NewRofiLauncher(cfg.Display.Launcher, cfg.Display.Theme)
+	// On Wayland, prefer wofi (native Wayland) over rofi (XWayland).
+	// rofi cannot steal keyboard focus on GNOME Wayland due to compositor restrictions.
+	launcherName := cfg.Display.Launcher
+	if session == env.SessionWayland && launcherName == "rofi" {
+		launcherName = "wofi"
+	}
+	launcher := input.NewRofiLauncher(launcherName, cfg.Display.Theme)
 	clipReader := input.NewClipboardReader(session)
 
 	var inj injector.Injector
 	switch session {
 	case env.SessionWayland:
-		inj = injector.NewYdotoolInjector(cfg.Injection.KeystrokeDelayMS)
+		inj = injector.NewWaylandInjector()
 	default:
 		inj = injector.NewXdotoolInjector(cfg.Injection.KeystrokeDelayMS)
 	}

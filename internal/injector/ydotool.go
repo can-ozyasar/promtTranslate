@@ -4,44 +4,34 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
-	"strconv"
-	"time"
+	"strings"
 )
 
-// YdotoolInjector uses ydotool to type text on both X11 and Wayland.
-// This version of ydotool (Ubuntu 24.04 noble) works directly via
-// /dev/uinput — no separate ydotoold daemon is required.
-type YdotoolInjector struct {
-	delayMS int
+// WaylandInjector uses wl-copy to copy text to the clipboard.
+// This is more reliable on Wayland than ydotool.
+type WaylandInjector struct{}
+
+// NewWaylandInjector creates a new WaylandInjector.
+func NewWaylandInjector() Injector {
+	return &WaylandInjector{}
 }
 
-// NewYdotoolInjector creates an injector with the given per-keystroke delay.
-func NewYdotoolInjector(delayMS int) Injector {
-	if delayMS <= 0 {
-		delayMS = 12
-	}
-	return &YdotoolInjector{delayMS: delayMS}
-}
-
-// Type uses ydotool type to inject text into the active window.
-// Waits 150ms after hotkey so rofi has time to close and focus returns
-// to the target terminal before keystrokes are sent.
-func (y *YdotoolInjector) Type(ctx context.Context, text string) error {
-	// Give the launcher window time to close so focus returns to the terminal.
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case <-time.After(150 * time.Millisecond):
+// Type uses wl-copy to copy text to the clipboard.
+// Instead of injecting keystrokes, it places the result on the clipboard
+// and notifies the user to paste it.
+func (w *WaylandInjector) Type(ctx context.Context, text string) error {
+	// GNOME Wayland security blocks virtual keyboards heavily.
+	// The most reliable cross-compositor way is copying to the clipboard.
+	cmd := exec.CommandContext(ctx, "wl-copy")
+	cmd.Stdin = strings.NewReader(text)
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("wl-copy failed: %w", err)
 	}
 
-	// ydotool type --next-delay <ms> -- <text>
-	cmd := exec.CommandContext(ctx,
-		"ydotool", "type",
-		"--next-delay", strconv.Itoa(y.delayMS),
-		"--", text,
-	)
-	if out, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("ydotool: %w — %s\nHint: kullanıcının 'input' grubunda olduğundan emin olun: sudo usermod -aG input $USER", err, string(out))
-	}
+	// Show a nice desktop notification
+	msg := fmt.Sprintf("Çeviri panoya kopyalandı, <b>Ctrl+V</b> ile yapıştırabilirsiniz.\n\n<i>%s</i>", text)
+	notify := exec.CommandContext(ctx, "notify-send", "-a", "promptTranslate", "-i", "accessories-dictionary", "Çeviri Hazır! 📋", msg)
+	_ = notify.Run()
+
 	return nil
 }
