@@ -9,7 +9,8 @@ import (
 )
 
 // YdotoolInjector uses ydotool to type text on both X11 and Wayland.
-// It requires ydotoold to be running (see install.sh).
+// This version of ydotool (Ubuntu 24.04 noble) works directly via
+// /dev/uinput — no separate ydotoold daemon is required.
 type YdotoolInjector struct {
 	delayMS int
 }
@@ -23,18 +24,14 @@ func NewYdotoolInjector(delayMS int) Injector {
 }
 
 // Type uses ydotool type to inject text into the active window.
-// It checks that ydotoold is reachable before attempting injection.
+// Waits 150ms after hotkey so rofi has time to close and focus returns
+// to the target terminal before keystrokes are sent.
 func (y *YdotoolInjector) Type(ctx context.Context, text string) error {
-	// Verify ydotoold socket is available.
-	if err := checkYdotoold(ctx); err != nil {
-		return err
-	}
-
 	// Give the launcher window time to close so focus returns to the terminal.
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
-	case <-time.After(120 * time.Millisecond):
+	case <-time.After(150 * time.Millisecond):
 	}
 
 	// ydotool type --next-delay <ms> -- <text>
@@ -44,17 +41,7 @@ func (y *YdotoolInjector) Type(ctx context.Context, text string) error {
 		"--", text,
 	)
 	if out, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("ydotool: %w — %s", err, string(out))
-	}
-	return nil
-}
-
-// checkYdotoold verifies the ydotoold daemon is running by running a no-op command.
-func checkYdotoold(ctx context.Context) error {
-	cmd := exec.CommandContext(ctx, "ydotool", "key") // no args → ydotoold connects, does nothing
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("ydotoold does not appear to be running — " +
-			"start it with: systemctl --user start ydotoold")
+		return fmt.Errorf("ydotool: %w — %s\nHint: kullanıcının 'input' grubunda olduğundan emin olun: sudo usermod -aG input $USER", err, string(out))
 	}
 	return nil
 }
