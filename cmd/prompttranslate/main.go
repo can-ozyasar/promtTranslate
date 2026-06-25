@@ -93,11 +93,7 @@ func main() {
 	// ── Build sub-systems ─────────────────────────────────────────────────────
 	// On Wayland, prefer wofi (native Wayland) over rofi (XWayland).
 	// rofi cannot steal keyboard focus on GNOME Wayland due to compositor restrictions.
-	launcherName := cfg.Display.Launcher
-	if session == env.SessionWayland && launcherName == "rofi" {
-		launcherName = "wofi"
-	}
-	launcher := input.NewRofiLauncher(launcherName, cfg.Display.Theme)
+	launcher := input.NewZenityLauncher()
 	clipReader := input.NewClipboardReader(session)
 
 	var inj injector.Injector
@@ -120,7 +116,7 @@ func main() {
 		return
 	}
 	if *onceRead {
-		if err := handleReadMode(ctx, cfg, clipReader, t); err != nil {
+		if err := handleReadMode(ctx, cfg, launcher, clipReader, t); err != nil {
 			slog.Error("read mode failed", "err", err)
 			notify.Error("promptTranslate", err.Error())
 			os.Exit(1)
@@ -147,7 +143,7 @@ func main() {
 				notify.Error("Çeviri Hatası", err.Error())
 			}
 		case "read_mode":
-			if err := handleReadMode(ctx, cfg, clipReader, t); err != nil {
+			if err := handleReadMode(ctx, cfg, launcher, clipReader, t); err != nil {
 				slog.Error("read mode", "err", err)
 				notify.Error("Çeviri Hatası", err.Error())
 			}
@@ -182,7 +178,7 @@ func main() {
 func handleWriteMode(
 	ctx context.Context,
 	cfg *config.Config,
-	launcher *input.RofiLauncher,
+	launcher *input.ZenityLauncher,
 	t translator.Translator,
 	inj injector.Injector,
 ) error {
@@ -205,6 +201,7 @@ func handleWriteMode(
 	if err := inj.Type(ctx, result); err != nil {
 		return fmt.Errorf("metin enjekte edilemedi: %w", err)
 	}
+	launcher.ClearDraft()
 	return nil
 }
 
@@ -212,6 +209,7 @@ func handleWriteMode(
 func handleReadMode(
 	ctx context.Context,
 	cfg *config.Config,
+	launcher *input.ZenityLauncher,
 	clipReader *input.ClipboardReader,
 	t translator.Translator,
 ) error {
@@ -233,6 +231,9 @@ func handleReadMode(
 
 	// Also copy result to clipboard so user can paste it.
 	_ = clipReader.WriteClipboard(result)
+
+	// Display the result using Zenity
+	launcher.DisplayResult(ctx, "Çeviri Sonucu (EN→TR)", result)
 
 	notify.Translation(text, result)
 	return nil
