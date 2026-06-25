@@ -24,6 +24,7 @@ Türkçe konuşan bir yazılımcı olarak her gün şu döngüyü yaşıyorsunuz
 3. **Bir İngilizce metni anlamak** istiyorsunuz — yine tarayıcıya, yine yapıştırma, yine geri.
 
 Her seferinde **5–10 saniye** ve **bağlam kaybı**. Gün içinde onlarca kez yapıyorsunuz. Bu, odaklanmayı kıran, verimliliği düşüren friksiyon'dur.
+ingilizce promt yazmak daha az token harcamamıza olanak sağlar ve bu güncel durumda çok kıymetli bir durum.
 
 **promptTranslate bu friksiyonu sıfıra indiriyor:**
 
@@ -406,7 +407,7 @@ bash scripts/uninstall.sh
 
 ## Lisans
 
-[MIT](LICENSE) © 2024 canoz
+[MIT](LICENSE) © 2026 canoz
 
 ---
 
